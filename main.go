@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bytes"
+	"context"
 	"flag"
 	"fmt"
 	"html/template"
@@ -10,9 +12,14 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"time"
 
 	"github.com/russross/blackfriday/v2"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/gridfs"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type Page struct {
@@ -24,18 +31,32 @@ type Page struct {
 type Pages []Page
 
 var (
-	srcDir = flag.String("src", "./seiten", "Inhalte-Dir.")
-	tmpDir = flag.String("tmp", "./templates", "Template-Dir.")
-	ps     Pages
+	srcDir       = flag.String("src", "./seiten", "Inhalte-Dir.")
+	tmpDir       = flag.String("tmp", "./templates", "Template-Dir.")
+	ps           Pages
+	user         = "root"
+	userpassword = "rootpassword"
 )
 
 func main() {
+
+	client := InitiateMongoClient()
+	coll := client.Database("portfolio").Collection("fs.files")
+	count, err := coll.EstimatedDocumentCount(context.TODO())
+	if err != nil {
+		fmt.Println("Error in Counting the number of ")
+	}
+
+	for i := 1; int64(i) <= count; i++ {
+		DownloadFile("seiten/", "project"+strconv.Itoa(i)+".md", "portfolio", client)
+	}
+
 	flag.Parse()
 	fs := http.FileServer(http.Dir("./static"))
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
 	log.Println(fs)
 
-	err := loadPages(*srcDir) //preload all pages for faster access time
+	err = loadPages(*srcDir) //preload all pages for faster access time
 
 	if err != nil {
 		log.Println("Error in Loading the Pages: %w", err)
@@ -49,6 +70,44 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+func InitiateMongoClient() *mongo.Client {
+	var err error
+	var client *mongo.Client
+	uri := "mongodb://" + user + ":" + userpassword + "@localhost:27017"
+	opts := options.Client()
+	opts.ApplyURI(uri)
+	opts.SetMaxPoolSize(5)
+	if client, err = mongo.Connect(context.Background(), opts); err != nil {
+		fmt.Println(err.Error())
+	}
+	return client
+}
+
+func DownloadFile(directory string, fileName string, databasename string, conn *mongo.Client) {
+
+	db := conn.Database(databasename)
+	fsFiles := db.Collection("fs.files")
+	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+	var results bson.M
+	err := fsFiles.FindOne(ctx, bson.M{}).Decode(&results)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(results)
+
+	bucket, _ := gridfs.NewBucket(
+		db,
+	)
+	var buf bytes.Buffer
+	dStream, err := bucket.DownloadToStreamByName(fileName, &buf)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("File size to download: %v\n", dStream)
+	ioutil.WriteFile(directory+fileName, buf.Bytes(), 0600)
+
 }
 
 func makeIndexHandler() http.HandlerFunc {

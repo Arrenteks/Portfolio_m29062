@@ -13,19 +13,5 @@ services:
         - "27017:27017"
       volumes:
         - mdbdata:/data/db
-    goapp:
-      image: gowebapp:latest
-      container_name: portfolioapp
-      depends_on:
-        - "gomdb"
-      #restart: always
-      links:
-        - "gomdb"
-      build:
-        context: .
-        dockerfile: "Dockerfile.goapp"
-
-      ports:
-        - "8080:8080"
 volumes:
     mdbdata:
