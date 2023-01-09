@@ -1,0 +1,79 @@
+nav ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background-color: #333;
+}
+
+nav li {
+  float: left;
+  border-right: 1px solid #bbb;
+}
+
+nav li a {
+  display: block;
+  color: white;
+  text-align: center;
+  padding: 14px 16px;
+  text-decoration: none;
+}
+
+/* Change the link color to #111 (black) on hover */
+nav li a:hover {
+  background-color: #111;
+}
+
+nav li:last-child {
+  border-right: none;
+}
+
+.grid-container{
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.grid-item{
+align-self: center;
+}
+
+.grid-item ul{
+  font-size: large;
+}
+
+.grid-text{
+  border-style: solid;
+  border-color: #bbb;
+  border-radius: 20px;
+}
+
+.grid-text .title {
+  border-style: solid;
+  border-color: #a6bbe3;
+  border-radius: 15px;
+  background-color: #a6bbe3;
+}
+
+.grid-item img{
+  border-style: none;
+  width: auto;
+  height: 50%;
+  border-radius: 50%;
+  box-shadow: 10px 10px lightblue;
+  }
+
+
+p{
+  margin-left: 5px;
+  font-size: large;
+}
+
+h2{
+  margin-left: 5px;
+}
+
+body{
+  background-image: url("../img/background.JPG");
+  background-color: #cccccc;
+}

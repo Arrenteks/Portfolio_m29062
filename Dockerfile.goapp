@@ -1,0 +1,15 @@
+FROM golang:latest AS build
+
+WORKDIR /Abgabe
+COPY ./main.go .
+RUN mkdir -p vendor
+COPY go.mod .
+COPY go.sum .
+RUN go mod vendor
+RUN go build -o MyApp main.go
+
+FROM debian
+WORKDIR /app
+COPY --from=build /Abgabe/MyApp .
+EXPOSE 8080
+CMD ["/app/MyApp"]
