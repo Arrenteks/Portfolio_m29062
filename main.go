@@ -33,6 +33,7 @@ type Pages []Page
 var (
 	srcDir       = flag.String("src", "./seiten", "Inhalte-Dir.")
 	tmpDir       = flag.String("tmp", "./templates", "Template-Dir.")
+	statDir      = flag.String("static", "./static/html/", "Static-Dir")
 	ps           Pages
 	user         = "root"
 	userpassword = "rootpassword"
@@ -60,6 +61,12 @@ func main() {
 
 	if err != nil {
 		log.Println("Error in Loading the Pages: %w", err)
+	}
+
+	generateStaticPage(ps, "static.index.templ.html", *statDir, "index.html")
+
+	for i := 1; i <= len(ps); i++ {
+		generateStaticPage(ps[i-1], "page.templ.html", *statDir, "project"+strconv.Itoa(i)+".html")
 	}
 
 	http.HandleFunc("/", makeIndexHandler())
@@ -115,9 +122,11 @@ func makeIndexHandler() http.HandlerFunc {
 		ps := getPages()
 
 		err := renderPage(w, ps, "index.templ.html")
+
 		if err != nil {
 			log.Println(err)
 		}
+
 	}
 }
 
@@ -125,7 +134,6 @@ func makePageHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		f := r.URL.Path[len("/page/"):]
 		fpath := filepath.Join(*srcDir, f)
-		log.Print(fpath)
 		p, err := getPage(fpath)
 
 		if err != nil {
@@ -152,9 +160,37 @@ func renderPage(w io.Writer, data interface{}, content string) error {
 	}
 
 	err = temp.ExecuteTemplate(w, "base", data)
+
 	if err != nil {
 		return fmt.Errorf("renderPage.ExecuteTemplate: %w", err)
 	}
+	return nil
+}
+
+func generateStaticPage(data interface{}, content string, directory string, name string) error {
+	temp, err := template.ParseFiles(
+		filepath.Join(*tmpDir, "static.base.templ.html"),
+		filepath.Join(*tmpDir, "static.header.templ.html"),
+		filepath.Join(*tmpDir, "footer.templ.html"),
+		filepath.Join(*tmpDir, content),
+	)
+
+	if err != nil {
+		return fmt.Errorf("generateStaticPage.ParseFiles: %w", err)
+	}
+
+	file, err := os.Create(directory + name)
+
+	if err != nil {
+		return fmt.Errorf("generateStaticPage.Create: %w", err)
+	}
+
+	err = temp.ExecuteTemplate(file, "base", data)
+
+	if err != nil {
+		return fmt.Errorf("generateStaticPage.ExecuteTemplate: %w", err)
+	}
+
 	return nil
 }
 
@@ -171,8 +207,6 @@ func getPage(name string) (Page, error) {
 			page = ps[i]
 		}
 	}
-
-	log.Print(page.Title)
 
 	return page, nil
 }
