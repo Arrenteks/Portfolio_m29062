@@ -1,10 +1,10 @@
 version: '3'
 
 services:
-    gomdb:
+    portfoliomdb:
       image: mongo:latest
       container_name: portfoliomdb
-      # restart: always
+      restart: always
       environment:
         MONGO_INITDB_ROOT_USERNAME: root
         MONGO_INITDB_ROOT_PASSWORD: rootpassword
@@ -13,5 +13,20 @@ services:
         - "27017:27017"
       volumes:
         - mdbdata:/data/db
+    goapp:
+      image: gowebapp:latest
+      container_name: localapp
+      depends_on:
+        - "portfoliomdb"
+      #restart: always
+      links:
+        - "portfoliomdb"
+      build:
+        context: .
+        dockerfile: "Portfoliofile.goapp"
+
+      ports:
+        - "9000:9000"
 volumes:
     mdbdata:
+
