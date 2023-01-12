@@ -4,7 +4,7 @@ services:
     gomdb:
       image: mongo:latest
       container_name: gomdb
-      # restart: always
+      restart: always
       environment:
         MONGO_INITDB_ROOT_USERNAME: root
         MONGO_INITDB_ROOT_PASSWORD: rootpassword
@@ -29,3 +29,4 @@ services:
         - "9000:9000"
 volumes:
     mdbdata:
+
