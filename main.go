@@ -45,7 +45,7 @@ func main() {
 	coll := client.Database("portfolio").Collection("fs.files")
 	count, err := coll.EstimatedDocumentCount(context.TODO())
 	if err != nil {
-		fmt.Println("Error in Counting the number of ")
+		fmt.Println(err)
 	}
 
 	for i := 1; int64(i) <= count; i++ {
@@ -82,8 +82,9 @@ func main() {
 func InitiateMongoClient() *mongo.Client {
 	var err error
 	var client *mongo.Client
-	uri := "mongodb://" + user + ":" + userpassword + "@localhost:27017"
+	uri := "mongodb://" + user + ":" + userpassword + "@gomdb:27017"
 	opts := options.Client()
+	opts.SetDirect(true)
 	opts.ApplyURI(uri)
 	opts.SetMaxPoolSize(5)
 	if client, err = mongo.Connect(context.Background(), opts); err != nil {

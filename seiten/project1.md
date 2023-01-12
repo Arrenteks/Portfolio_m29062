@@ -20,7 +20,7 @@ Wirst du es nach Hause schaffen oder wirst du unterwegs an deinem Alter zu Grund
 **Engine:** Unity<br/>
 **Programmiersprache:** C#<br/>
 **Versionsverwaltung:** Github<br/>
-**Zustand:** Protyp abgeschlossen, vorläufig shelved<br/>
+**Zustand:** Protyp abgeschlossen, weitere Entwicklung vorläufig eingestellt<br/>
 
 ## Mein Beitrag
 
@@ -37,12 +37,3 @@ Die Alterung erfolgt als simple Steigerung eines Integer-Wertes, mit dessen Hilf
 ### Questing System
 
 Das Questing System ist direkt an ein klassisches "Schwarzes Brett" gebunden, an dem Auftrage angenommen werden können. Diese umfassen meist, aber Dinge die nicht nur den Reichtum des Spielers, sondern auch das Alter erhöhen. Dies sorgt dafür, dass Spieler immer die Ressource "Alter" im Hinterkopf behalten müssen und nicht einfach drauf los questen können.
-
-
-## Bilder aus dem Prototyp
-
-<div class="grid-container" markdown="1">
-<div class = "grid-item">Testing</div>
-<div class = "grid-item">Testing</div>
-<div class = "grid-item">Testing</div>
-</div>

@@ -16,11 +16,3 @@ Die Erinnerung an meinen Vater wie er mit endlos vielen Zetteln im Wohnzimmer sa
 **Programmiersprache:** Java 16<br/>
 **Versionsverwaltung:** Github hier zum Projekt: <https://github.com/Arrenteks/Signaltrainer><br/>
 **Zustand:** Prototyp abgeschlossen, weitere Entwicklung pausiert
-
-## Bilder aus dem Prototyp
-
-<div class="grid-container" markdown="1">
-<div class = "grid-item">Testing</div>
-<div class = "grid-item">Testing</div>
-<div class = "grid-item">Testing</div>
-</div>

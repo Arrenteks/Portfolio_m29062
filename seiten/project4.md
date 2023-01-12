@@ -16,12 +16,3 @@ Dieses Projekt entstand im zweiten Semester im Zuge des Moduls "Programmierung 2
 
 ## Die KI
 Die KI basiert auf einem simplen Minimax-Algorithmus mit Alpha-Beta Cutting. Sie kann das Spiel 4 Züge im Voraus berechnen ohne das eine merkliche Verzögerung im Spielfluss eintritt.
-
-
-## Bilder aus dem Programm
-
-<div class="grid-container" markdown="1">
-    <div class = "grid-item">Testing</div>
-    <div class = "grid-item">Testing</div>
-    <div class = "grid-item">Testing</div>
-</div>

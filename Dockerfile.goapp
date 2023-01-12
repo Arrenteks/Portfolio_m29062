@@ -6,10 +6,13 @@ RUN mkdir -p vendor
 COPY go.mod .
 COPY go.sum .
 RUN go mod vendor
-RUN go build -o MyApp main.go
+RUN go build -o PortfolioApp main.go
 
 FROM debian
-WORKDIR /app
-COPY --from=build /Abgabe/MyApp .
-EXPOSE 8080
-CMD ["/app/MyApp"]
+WORKDIR /Abgabe
+COPY --from=build /Abgabe/PortfolioApp .
+COPY static/ static/
+COPY templates/ templates/
+COPY seiten/ seiten/
+EXPOSE 9000
+CMD ["/Abgabe/PortfolioApp"]

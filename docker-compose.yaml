@@ -3,7 +3,7 @@ version: '3'
 services:
     gomdb:
       image: mongo:latest
-      container_name: portfoliomdb
+      container_name: gomdb
       # restart: always
       environment:
         MONGO_INITDB_ROOT_USERNAME: root
@@ -13,5 +13,19 @@ services:
         - "27017:27017"
       volumes:
         - mdbdata:/data/db
+    goapp:
+      image: gowebapp:latest
+      container_name: localapp
+      depends_on:
+        - "gomdb"
+      #restart: always
+      links:
+        - "gomdb"
+      build:
+        context: .
+        dockerfile: "Dockerfile.goapp"
+
+      ports:
+        - "9000:9000"
 volumes:
     mdbdata:
