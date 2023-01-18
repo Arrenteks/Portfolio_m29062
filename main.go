@@ -5,6 +5,7 @@ package main
 // Package Main beschreibt wie die Webapplikation aufgebaut werden soll. Es liefert den Verweis für die zugehörigen go.sum und go.mod
 // Dateien zu dem Programm.
 import (
+	"archive/zip"
 	"bytes"
 	"context"
 	"flag"
@@ -15,6 +16,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path"
 	"path/filepath"
 	"strconv"
 	"time"
@@ -60,16 +62,36 @@ var (
 // Die Website ist nun erreichbar.
 func main() {
 
-	client := InitiateMongoClient()
+	client, ctx := InitiateMongoClient()
+
 	coll := client.Database("portfolio").Collection("fs.files")
-	count, err := coll.EstimatedDocumentCount(context.TODO())
+	coll.DeleteMany(ctx, bson.M{}) //Lösche alle alten Daten
+
+	coll = (*mongo.Collection)(client.Database("portfolio").Collection("fs.chunks"))
+	coll.DeleteMany(ctx, bson.M{}) //Lösche alle alten Daten
+
+	file, err := os.Stat("seiten.zip")
+
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 	}
 
-	for i := 1; int64(i) <= count; i++ {
-		DownloadFile("seiten/", "project"+strconv.Itoa(i)+".md", "portfolio", client, "fs.files")
+	filename := path.Base(file.Name())
+	UploadFile(file.Name(), filename, "portfolio", client)
+
+	file, err = os.Stat("templates.zip")
+
+	if err != nil {
+		log.Println(err)
 	}
+
+	//Aufsetzen der Datenbank abgeschlossen
+
+	unzipFile("seiten.zip")
+	unzipFile("templates.zip")
+
+	filename = path.Base(file.Name())
+	UploadFile(file.Name(), filename, "portfolio", client)
 
 	flag.Parse()
 	fs := http.FileServer(http.Dir("./static"))
@@ -98,10 +120,85 @@ func main() {
 	}
 }
 
+func UploadFile(file, filename string, databasename string, client *mongo.Client) {
+
+	data, err := ioutil.ReadFile(file)
+	if err != nil {
+		log.Fatal(err)
+	}
+	conn := client
+	bucket, err := gridfs.NewBucket(
+		conn.Database(databasename),
+	)
+	if err != nil {
+		log.Fatal(err)
+		os.Exit(1)
+	}
+	uploadStream, err := bucket.OpenUploadStream(
+		filename,
+	)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+	defer uploadStream.Close()
+
+	fileSize, err := uploadStream.Write(data)
+	if err != nil {
+		log.Fatal(err)
+		os.Exit(1)
+	}
+	log.Printf("Write file to DB was successful. File size: %d M\n", fileSize)
+}
+
+func unzipFile(filename string) {
+	dst := ""
+	archive, err := zip.OpenReader(filename)
+
+	if err != nil {
+		log.Println("Error in Unzipping File: %w", filename, err)
+	}
+
+	defer archive.Close()
+
+	for _, f := range archive.File {
+		filePath := filepath.Join(dst, f.Name)
+		log.Println("unzipping File", filePath)
+
+		if f.FileInfo().IsDir() {
+			fmt.Println("creating directory...")
+			os.MkdirAll(filePath, os.ModePerm)
+			continue
+		}
+
+		if err := os.MkdirAll(filepath.Dir(filePath), os.ModePerm); err != nil {
+			panic(err)
+		}
+
+		dstFile, err := os.OpenFile(filePath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, f.Mode())
+		if err != nil {
+			panic(err)
+		}
+
+		fileInArchive, err := f.Open()
+		if err != nil {
+			panic(err)
+		}
+
+		if _, err := io.Copy(dstFile, fileInArchive); err != nil {
+			panic(err)
+		}
+
+		dstFile.Close()
+		fileInArchive.Close()
+	}
+
+}
+
 // Initialisierung eines MongoDB Clienten mit manuell spezifizierten Daten
 // Gibt den daraus resultierenden Pointer auf den Clienten zurück
 // returns - *mongo.Client - Pointer auf einen MongoDb Client
-func InitiateMongoClient() *mongo.Client {
+func InitiateMongoClient() (*mongo.Client, context.Context) {
 	var err error
 	var client *mongo.Client
 	uri := "mongodb://" + user + ":" + userpassword + "@" + databasename + ":" + port
@@ -109,10 +206,11 @@ func InitiateMongoClient() *mongo.Client {
 	opts.SetDirect(true)
 	opts.ApplyURI(uri)
 	opts.SetMaxPoolSize(5)
-	if client, err = mongo.Connect(context.Background(), opts); err != nil {
+	ctx := context.Background()
+	if client, err = mongo.Connect(ctx, opts); err != nil {
 		fmt.Println(err.Error())
 	}
-	return client
+	return client, ctx
 }
 
 // lädt eine manuell spezifizierte Datei aus einer MongoDB - Datenbank in der Collection "fs.files" herunter und verpackt sie in ein Verzeichnis
