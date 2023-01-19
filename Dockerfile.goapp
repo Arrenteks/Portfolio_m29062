@@ -12,7 +12,6 @@ FROM debian
 WORKDIR /Abgabe
 COPY --from=build /Abgabe/PortfolioApp .
 COPY static/ static/
-COPY templates/ templates/
-COPY seiten/ seiten/
+COPY raw/ raw/
 EXPOSE 9000
 CMD ["/Abgabe/PortfolioApp"]

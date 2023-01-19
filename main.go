@@ -70,28 +70,31 @@ func main() {
 	coll = (*mongo.Collection)(client.Database("portfolio").Collection("fs.chunks"))
 	coll.DeleteMany(ctx, bson.M{}) //Lösche alle alten Daten
 
-	file, err := os.Stat("seiten.zip")
+	file, err := os.Stat("raw/seiten.zip")
 
 	if err != nil {
-		log.Println(err)
+		fmt.Println(err)
 	}
 
 	filename := path.Base(file.Name())
-	UploadFile(file.Name(), filename, "portfolio", client)
+	UploadFile(file.Name(), filename, "raw/", "portfolio", client)
 
-	file, err = os.Stat("templates.zip")
+	file, err = os.Stat("raw/templates.zip")
 
 	if err != nil {
-		log.Println(err)
+		fmt.Println(err)
 	}
+
+	filename = path.Base(file.Name())
+	UploadFile(file.Name(), filename, "raw/", "portfolio", client)
 
 	//Aufsetzen der Datenbank abgeschlossen
 
-	unzipFile("seiten.zip")
-	unzipFile("templates.zip")
+	DownloadFile("raw/", "seiten.zip", "portfolio", client, "fs.files")
+	DownloadFile("raw/", "templates.zip", "portfolio", client, "fs.files")
 
-	filename = path.Base(file.Name())
-	UploadFile(file.Name(), filename, "portfolio", client)
+	unzipFile("raw/seiten.zip", "")
+	unzipFile("raw/templates.zip", "")
 
 	flag.Parse()
 	fs := http.FileServer(http.Dir("./static"))
@@ -120,9 +123,9 @@ func main() {
 	}
 }
 
-func UploadFile(file, filename string, databasename string, client *mongo.Client) {
+func UploadFile(file, filename string, directory string, databasename string, client *mongo.Client) {
 
-	data, err := ioutil.ReadFile(file)
+	data, err := ioutil.ReadFile(directory + file)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -151,22 +154,22 @@ func UploadFile(file, filename string, databasename string, client *mongo.Client
 	log.Printf("Write file to DB was successful. File size: %d M\n", fileSize)
 }
 
-func unzipFile(filename string) {
-	dst := ""
+func unzipFile(filename string, dst string) {
+
 	archive, err := zip.OpenReader(filename)
 
 	if err != nil {
-		log.Println("Error in Unzipping File: %w", filename, err)
+		log.Println("Fehler im Entpacken der Datei: %w", filename, err)
 	}
 
 	defer archive.Close()
 
 	for _, f := range archive.File {
 		filePath := filepath.Join(dst, f.Name)
-		log.Println("unzipping File", filePath)
+		log.Println("entpacke Datei", filePath)
 
 		if f.FileInfo().IsDir() {
-			fmt.Println("creating directory...")
+			fmt.Println("erstelle Directory...")
 			os.MkdirAll(filePath, os.ModePerm)
 			continue
 		}
