@@ -123,6 +123,13 @@ func main() {
 	}
 }
 
+// Funktion zum Hochladen einer Datei in eine durch den User spezifizierte Datenbank
+// benutzt GridFs zum Hochladen von größeren Binärdateien
+// file - Hochzuladene Datei
+// filename - wie sol die Datei in der Datenbank genannt werden
+// directory - in welchem Directory ist die Datei zu finden
+// databasename - wie heißt die Datenbank in die die Datei hochgeladen werden soll
+// client - Pointer auf einen MongoDB Client
 func UploadFile(file, filename string, directory string, databasename string, client *mongo.Client) {
 
 	data, err := ioutil.ReadFile(directory + file)
@@ -154,6 +161,9 @@ func UploadFile(file, filename string, directory string, databasename string, cl
 	log.Printf("Write file to DB was successful. File size: %d M\n", fileSize)
 }
 
+// Funktion zum Unzippen einer Zipfile in einem User-spezifizierten Directory
+// filename - wie heißt die Datei
+// dst - wo soll die Datei hin kopiert werden
 func unzipFile(filename string, dst string) {
 
 	archive, err := zip.OpenReader(filename)
